@@ -1,0 +1,21 @@
+version: '2'
+
+services:
+    vnfa:
+        image: ciena/vnf
+        environment:
+        - DEBUG=true
+        - MASK=00:00:00:00:11:11
+
+    vnfb:
+        image: ciena/vnf
+        environment:
+        - DEBUG=true
+        - MASK=00:00:11:11:00:00
+
+    vnfc:
+        image: ciena/vnf
+        environment:
+        - DEBUG=true
+        - MASK=11:11:00:00:00:00
+        - DROP=11:22:33:44:55:66
