@@ -1,21 +1,50 @@
 version: '2'
 
 services:
-    vnfa:
+    client:
+        image: ciena/client
+        cap_add:
+        - ALL
+        network_mode: none
+
+    uplink:
+        image: ciena/client
+        cap_add:
+        - ALL
+        
+    egress_vnf_a:
         image: ciena/vnf
         environment:
         - DEBUG=true
         - MASK=00:00:00:00:11:11
 
-    vnfb:
+    egress_vnf_b:
         image: ciena/vnf
         environment:
         - DEBUG=true
         - MASK=00:00:11:11:00:00
 
-    vnfc:
+    egress_vnf_c:
         image: ciena/vnf
         environment:
         - DEBUG=true
         - MASK=11:11:00:00:00:00
         - DROP=11:22:33:44:55:66
+
+    ingress_vnf_a:
+        image: ciena/vnf
+        environment:
+        - DEBUG=true
+
+    ingress_vnf_b:
+        image: ciena/vnf
+        environment:
+        - DEBUG=true
+
+    svc_udp:
+        image: ciena/udp-svc
+        network_mode: none
+
+    svc_tcp:
+        image: ciena/tcp-svc
+        network_mode: none

@@ -3,18 +3,29 @@ This project demonstrates how VNF chaining could work within an environment
 where each VNF is a docker container and an OVS (OpenVSwitch) is used with
 OpenFlow to control the flow of a packet from a source, through the chain, and
 then to be received by a destination. The basic layout and flow of the VNF
-chain is depicted in the figure below:
+chain is depicted in the figure below. Included in this example is not only
+vNF chaining, as represented by the `vNF` entries, but also tenant networking
+that allows the client to access some vNFs via layer 3 routing, as represented
+by the `SVC` entries.
 
 ![](./vnf-chain.png)
 
 The formula used for this demonstration is that each VNF is assigned two (2)
-data plane interface, `in0` and `out0`. It is the requirement of the the VNF
+data plane interfaces, `in0` and `out0`. It is the requirement of the the VNF
 implementation to read from `in0` and write to `out0`. Each of these interfaces
 on the VNFs are attached to an instance of an OpenVSwitch (OVS).
+
+The service vNFs (SVC) have a single interface, `eth0`, and operate as normal
+layer 3 capabilities utilizing that single interface for TX and RX.
 
 OpenFlow (OF) rules are applied to the OVS such that packets received on port
 0 are forward to port 1, received on port 2 are forward to port 3, received on
 port 4 are forward to port 5, received on port 6 are forward to port 7.
+
+The flow rules also allow layer 3 traffic to reach the service vNFs (SVC).
+
+After the packet has reached its destination the flow rules then ensure that
+the packet traverses the ingress vNF chain back to the subscriber.
 
 These OF rules ensure the patch of any packet once it enters the chain.
 
@@ -31,7 +42,7 @@ VM the following command can be issued:
 vagrant up
 ```
 
-You will need Internet access to create this VM as it may be required to 
+You will need Internet access to create this VM as it may be required to
 download some software packages and the Vagrant box image.
 
 Once the Vagrant box (VM) is created you can access this machine and access
@@ -44,11 +55,11 @@ cd /vagrant
 
 #### Build VNF Docker Image
 The VNFs are **Docker** containers running a simple **Python** based packet
-processing algorithm leveraging the **Scapy** package. Each VNF in the 
+processing algorithm leveraging the **Scapy** package. Each VNF in the
 demonstration chain will be an identical Docker image but started with
 different parameters.
 
-The processing done by each VNF is simple. A MAC *mask* is set on the VNF, 
+The processing done by each VNF is simple. A MAC *mask* is set on the VNF,
 when a packet is received on `in0` that mask is applied to the ethernet
 src MAC in the header. If an octet in the src MAC is `00` then it is
 replaced with the associated octet from the VNF's mask.
@@ -59,7 +70,7 @@ the VNF does not forward the packet to `out0`, effectively dropping the
 packet; if the values do not match the packet is forwarded out `out0`
 to the next VNF in the chain.
 
-This behavior is defined in the `process.py` file. 
+This behavior is defined in the `process.py` file.
 
 To build the VNF Docker container, the following commands can be used:
 ```
@@ -113,16 +124,39 @@ the last VNF and never delivered. The test can be invoked using the
 `make` target `test`.
 ```
 ubuntu@bp-cord:/vagrant$ make test
-sudo IFACE=vnfchain ./test.py
-WARNING: No route found for IPv6 destination :: (no default route?)
-IFACE: vnfchain
-DEBUG: False
-Sending packet on vnfchain with ether src of  00:00:00:00:00:00
-Waiting for packet
-Received packet on vnfchain with ether src of 11:11:11:11:11:11
-PASS
-Sending packet on vnfchain with ether dst of  11:22:33:44:55:66
-Waiting for packet
-No packet recieved
-PASS
+docker exec -ti vagrant_client_1 ash -c 'UDP_SEND_IP=10.1.0.3 python ./send-udp.py'
+RX         : 0.0.0.0:5067
+TX         : 10.1.0.3:5068
+MSG        : Hello
+RETRY_COUNT: 5
+-----
+TX  : 10.1.0.3:5068 -> Hello
++RX : 10.1.0.3:49633 -> Good morning
+docker exec -ti vagrant_client_1 ash -c 'TCP_SEND_IP=10.1.0.4 python ./send-tcp.py'
+TX         : 10.1.0.4:5080
+MSG        : Hello
+-----
+CX  : 10.1.0.4:5080
++TX : 10.1.0.4:5080 -> Hello
++RX : 10.1.0.4:5080 -> Good morning
++DX : 10.1.0.4:5080
 ```
+
+#### Logs During Test
+If you view the logs during a test run, in particular easy to see if you run
+just the UDP test, `make test-udp`, you can see that a packet traverses the
+vNF chain in the specified order as the UDP packet is sent from the client to
+the UDP service vNF and the service vNF responds with a UDP packet back to the
+client.
+
+```
+egress_vnf_a_1   | 2017-04-11 15:58:36.757483: ea:50:a5:23:3a:e2
+egress_vnf_b_1   | 2017-04-11 15:58:36.772296: ea:50:a5:23:3a:e2
+egress_vnf_c_1   | 2017-04-11 15:58:36.784983: ea:50:a5:23:3a:e2
+ingress_vnf_a_1  | 2017-04-11 15:58:36.795972: a6:fd:73:03:e4:3e
+ingress_vnf_b_1  | 2017-04-11 15:58:36.804086: a6:fd:73:03:e4:3e
+```
+
+#### Clean Up
+To destroy the docker containers in the VM `make destroy` can be used. To
+completely clean up `vagrant destroy -f` can be used on the host machine.
