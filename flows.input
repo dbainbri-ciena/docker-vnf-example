@@ -1,0 +1,33 @@
+# client -> egress vNF A
+sudo ovs-ofctl add-flow -OOpenFlow13 chain table=0,in_port=(client,eth0),actions=output:(egress_vnf_a,in0)
+
+# egress vNF A to egress vNF B
+sudo ovs-ofctl add-flow -OOpenFlow13 chain table=0,in_port=(egress_vnf_a,out0),actions=output:(egress_vnf_b,in0)
+
+# egress vNF B to egress vNF C
+sudo ovs-ofctl add-flow -OOpenFlow13 chain table=0,in_port=(egress_vnf_b,out0),actions=output:(egress_vnf_c,in0)
+
+# egress vNF C to tenant network and Internet
+sudo ovs-ofctl add-flow -OOpenFlow13 chain table=0,in_port=(egress_vnf_c,out0),actions=goto_table:10
+
+# Sample UDP service to ingress vNF A
+sudo ovs-ofctl add-flow -OOpenFlow13 chain table=0,in_port=(svc_udp,eth0),actions=output:(ingress_vnf_a,in0)
+
+# Sample TCP service to ingress vNF A
+sudo ovs-ofctl add-flow -OOpenFlow13 chain table=0,in_port=(svc_tcp,eth0),actions=output:(ingress_vnf_a,in0)
+
+# Internet to ingress vNF A
+sudo ovs-ofctl add-flow -OOpenFlow13 chain table=0,in_port=(uplink,up0),actions=output:(ingress_vnf_a,in0)
+
+# ingress vNF A to ingress vNF B
+sudo ovs-ofctl add-flow -OOpenFlow13 chain table=0,in_port=(ingress_vnf_a,out0),actions=output:(ingress_vnf_b,in0)
+
+# ingress vNF B to client
+sudo ovs-ofctl add-flow -OOpenFlow13 chain table=0,in_port=(ingress_vnf_b,out0),actions=output:(client,eth0)
+
+# Match on DST IP to service vNF or distribute everywhere
+sudo ovs-ofctl add-flow -OOpenFlow13 chain table=10,ip,nw_dst=10.1.0.3,actions=output:(svc_udp,eth0)
+sudo ovs-ofctl add-flow -OOpenFlow13 chain table=10,ip,nw_dst=10.1.0.4,actions=output:(svc_tcp,eth0)
+sudo ovs-ofctl add-flow -OOpenFlow13 chain table=10,priority=0,actions=output:(svc_udp,eth0),output:(svc_tcp,eth0),output:(uplink,up0)
+
+
