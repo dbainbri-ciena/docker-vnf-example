@@ -8,6 +8,12 @@ vNF chaining, as represented by the `vNF` entries, but also tenant networking
 that allows the client to access some vNFs via layer 3 routing, as represented
 by the `SVC` entries.
 
+The example demonstrates the a user case with two distinct subscribers as well
+as some vNFs that are shared and some vNFs that are unique per subscriber.
+
+_**TODO:** While the user case depicts a connection to the Internet this aspect of
+the use case is not yet supported._
+
 ![](./vnf-chain.png)
 
 The formula used for this demonstration is that each VNF is assigned two (2)
@@ -18,16 +24,16 @@ on the VNFs are attached to an instance of an OpenVSwitch (OVS).
 The service vNFs (SVC) have a single interface, `eth0`, and operate as normal
 layer 3 capabilities utilizing that single interface for TX and RX.
 
-OpenFlow (OF) rules are applied to the OVS such that packets received on port
-0 are forward to port 1, received on port 2 are forward to port 3, received on
-port 4 are forward to port 5, received on port 6 are forward to port 7.
-
-The flow rules also allow layer 3 traffic to reach the service vNFs (SVC).
+OpenFlow (OF) rules are applied to the OVS such that packets flow through the
+vNFs using `port_in` and `output` rules along with more detailed rules to
+support the L3 (SVC) vNFs. In general, taffic is flowed to the `in0` port on
+a vNF and then from the `out0` port of that vNF to the `in0` port on the next
+vNF in the chain.
 
 After the packet has reached its destination the flow rules then ensure that
 the packet traverses the ingress vNF chain back to the subscriber.
 
-These OF rules ensure the patch of any packet once it enters the chain.
+These OF rules ensure the path of any packet once it enters the chain.
 
 ## Installation and Deployment
 This project leverages **Vagrant** and so for easiest usage you should have
@@ -38,7 +44,7 @@ This project leverages **Vagrant** and so for easiest usage you should have
 There is only a single Vagrant box defined for this project. To create this
 VM the following command can be issued:
 
-```
+```bash
 vagrant up
 ```
 
@@ -48,7 +54,7 @@ download some software packages and the Vagrant box image.
 Once the Vagrant box (VM) is created you can access this machine and access
 the demonstration files on the VM using the following command:
 
-```
+```bash
 vagrant ssh
 cd /vagrant
 ```
@@ -73,7 +79,7 @@ to the next VNF in the chain.
 This behavior is defined in the `process.py` file.
 
 To build the VNF Docker container, the following commands can be used:
-```
+```bash
 cd /vagrant
 make build
 ```
@@ -85,7 +91,7 @@ The creation of the VNF chain consists of three phases
 3. push flows to the OVS to control the packet flow across the chain
 
 These steps can be invoked using the `make` target `deploy`:
-```
+```bash
 cd /vagrant
 make deploy
 ```
@@ -95,66 +101,108 @@ The VNFs provide some logging while processing packets. The essentially
 output a time stamp when the processed the packet and the ethernet src
 MAC after it has been modified. An example of this output is below:
 ```
-vnfa_1  | 2017-04-06 18:21:04.627568: 00:00:00:00:11:11
-vnfb_1  | 2017-04-06 18:21:04.643939: 00:00:11:11:11:11
-vnfc_1  | 2017-04-06 18:21:04.655679: 11:11:11:11:11:11
-vnfa_1  | 2017-04-06 18:21:04.703563: 00:00:00:00:11:11
-vnfb_1  | 2017-04-06 18:21:04.715747: 00:00:11:11:11:11
-vnfc_1  | 2017-04-06 18:21:04.727597: 11:11:11:11:11:11 [DROP]
-vnfa_1  | 2017-04-06 18:21:13.491106: 00:00:00:00:11:11
-vnfb_1  | 2017-04-06 18:21:13.507499: 00:00:11:11:11:11
-vnfc_1  | 2017-04-06 18:21:13.523412: 11:11:11:11:11:11
-vnfa_1  | 2017-04-06 18:21:13.564962: 00:00:00:00:11:11
-vnfb_1  | 2017-04-06 18:21:13.575161: 00:00:11:11:11:11
-vnfc_1  | 2017-04-06 18:21:13.587124: 11:11:11:11:11:11 [DROP]
+egress_vnf_a                 | 2017-04-13 20:23:36.868775: ca:fe:00:00:00:01
+egress_vnf_b_subscriber_a    | 2017-04-13 20:23:36.881134: ca:fe:00:00:00:01
+egress_vnf_c                 | 2017-04-13 20:23:36.896799: ca:fe:00:00:00:01
+udp_service_subscriber_a     | RX  : 10.1.0.2:44697 -> Hello
+udp_service_subscriber_a     | +TX : 10.1.0.2:5067 -> "UDP for subscriber A"
+ingress_vnf_a                | 2017-04-13 20:23:36.908561: fe:c0:ed:09:28:a5
+ingress_vnf_b                | 2017-04-13 20:23:36.924427: fe:c0:ed:09:28:a5
+egress_vnf_a                 | 2017-04-13 20:23:37.000032: ca:fe:00:00:00:01
+egress_vnf_b_subscriber_a    | 2017-04-13 20:23:37.007819: ca:fe:00:00:00:01
+egress_vnf_c                 | 2017-04-13 20:23:37.024141: ca:fe:00:00:00:01
+ingress_vnf_a                | 2017-04-13 20:23:37.043432: ee:3e:c8:cc:6a:74
+ingress_vnf_b                | 2017-04-13 20:23:37.056544: ee:3e:c8:cc:6a:74
+egress_vnf_a                 | 2017-04-13 20:23:37.067981: ca:fe:00:00:00:01
+egress_vnf_b_subscriber_a    | 2017-04-13 20:23:37.080257: ca:fe:00:00:00:01
+egress_vnf_a                 | 2017-04-13 20:23:37.092454: ca:fe:00:00:00:01
+egress_vnf_c                 | 2017-04-13 20:23:37.094329: ca:fe:00:00:00:01
+tcp_service                  | CX  : 10.1.0.2:35324
+egress_vnf_b_subscriber_a    | 2017-04-13 20:23:37.108548: ca:fe:00:00:00:01
+egress_vnf_c                 | 2017-04-13 20:23:37.121992: ca:fe:00:00:00:01
+tcp_service                  | +RX : 10.1.0.2:35324 -> Hello
+tcp_service                  | +TX : 10.1.0.2:35324 -> Good morning
+tcp_service                  | +DX : 10.1.0.2:35324
+ingress_vnf_a                | 2017-04-13 20:23:37.136061: ee:3e:c8:cc:6a:74
+ingress_vnf_b                | 2017-04-13 20:23:37.144429: ee:3e:c8:cc:6a:74
+ingress_vnf_a                | 2017-04-13 20:23:37.155531: ee:3e:c8:cc:6a:74
+ingress_vnf_b                | 2017-04-13 20:23:37.168617: ee:3e:c8:cc:6a:74
+ingress_vnf_a                | 2017-04-13 20:23:37.179522: ee:3e:c8:cc:6a:74
+egress_vnf_a                 | 2017-04-13 20:23:37.181460: ca:fe:00:00:00:01
+ingress_vnf_b                | 2017-04-13 20:23:37.192006: ee:3e:c8:cc:6a:74
+egress_vnf_b_subscriber_a    | 2017-04-13 20:23:37.192737: ca:fe:00:00:00:01
+egress_vnf_a                 | 2017-04-13 20:23:37.204245: ca:fe:00:00:00:01
+egress_vnf_c                 | 2017-04-13 20:23:37.205428: ca:fe:00:00:00:01
+egress_vnf_b_subscriber_a    | 2017-04-13 20:23:37.216031: ca:fe:00:00:00:01
+egress_vnf_a                 | 2017-04-13 20:23:37.227030: ca:fe:00:00:00:01
+egress_vnf_c                 | 2017-04-13 20:23:37.227822: ca:fe:00:00:00:01
+ingress_vnf_a                | 2017-04-13 20:23:37.240120: ee:3e:c8:cc:6a:74
+egress_vnf_b_subscriber_a    | 2017-04-13 20:23:37.241267: ca:fe:00:00:00:01
+egress_vnf_c                 | 2017-04-13 20:23:37.252206: ca:fe:00:00:00:01
+ingress_vnf_b                | 2017-04-13 20:23:37.253760: ee:3e:c8:cc:6a:74
+egress_vnf_a                 | 2017-04-13 20:23:41.886572: ca:fe:00:00:00:01
+egress_vnf_b_subscriber_a    | 2017-04-13 20:23:41.900095: ca:fe:00:00:00:01
+egress_vnf_c                 | 2017-04-13 20:23:41.912709: ca:fe:00:00:00:01
+ingress_vnf_a                | 2017-04-13 20:23:41.919018: fe:c0:ed:09:28:a5
+ingress_vnf_b                | 2017-04-13 20:23:41.936793: fe:c0:ed:09:28:a5
+egress_vnf_a                 | 2017-04-13 20:23:41.948082: ca:fe:00:00:00:01
+ingress_vnf_a                | 2017-04-13 20:23:41.951329: fe:c0:ed:09:28:a5
+egress_vnf_b_subscriber_a    | 2017-04-13 20:23:41.963417: ca:fe:00:00:00:01
+ingress_vnf_b                | 2017-04-13 20:23:41.964026: fe:c0:ed:09:28:a5
+egress_vnf_c                 | 2017-04-13 20:23:41.975391: ca:fe:00:00:00:01
 ```
 
 The logs of the VNFs can be viewed by using the `make` target `logs`
-```
+```bash
 cd /vagrant
 make logs
 ```
 
 #### Run Quick Test
-Provided with this demonstration is a quick test program that sends
-a packet into the chain and watches for the packet. This test is in
-the file `test.py`. The test sends two packets, the first is expected
-to make it all the way through the chain and the second is dropped by
-the last VNF and never delivered. The test can be invoked using the
-`make` target `test`.
-```
+Provided with this demonstration is a quick test program produces requests to
+the service vNF using both `UDP` and `TCP` communication. The `UDP` test
+represents a service such as DHCP as a vNF and the `TCP` test represents a
+service such as a web server. The test can be invoked using the `make` target
+`test`.
+
+```bash
 ubuntu@bp-cord:/vagrant$ make test
-docker exec -ti vagrant_client_1 ash -c 'UDP_SEND_IP=10.1.0.3 python ./send-udp.py'
+docker exec -ti subscriber_a ash -c 'UDP_SEND_IP=10.1.0.3 python ./send-udp.py'
+WHO_AM_I   : Subscriber-A
 RX         : 0.0.0.0:5067
 TX         : 10.1.0.3:5068
 MSG        : Hello
 RETRY_COUNT: 5
 -----
-TX  : 10.1.0.3:5068 -> Hello
-+RX : 10.1.0.3:49633 -> Good morning
-docker exec -ti vagrant_client_1 ash -c 'TCP_SEND_IP=10.1.0.4 python ./send-tcp.py'
+TX[Subscriber-A]  : 10.1.0.3:5068 -> Hello
++RX[Subscriber-A] : 10.1.0.3:37894 -> "UDP for subscriber A"
+docker exec -ti subscriber_a ash -c 'TCP_SEND_IP=10.1.0.4 python ./send-tcp.py'
+WHO_AM_I   : Subscriber-A
 TX         : 10.1.0.4:5080
 MSG        : Hello
 -----
-CX  : 10.1.0.4:5080
-+TX : 10.1.0.4:5080 -> Hello
-+RX : 10.1.0.4:5080 -> Good morning
-+DX : 10.1.0.4:5080
-```
-
-#### Logs During Test
-If you view the logs during a test run, in particular easy to see if you run
-just the UDP test, `make test-udp`, you can see that a packet traverses the
-vNF chain in the specified order as the UDP packet is sent from the client to
-the UDP service vNF and the service vNF responds with a UDP packet back to the
-client.
-
-```
-egress_vnf_a_1   | 2017-04-11 15:58:36.757483: ea:50:a5:23:3a:e2
-egress_vnf_b_1   | 2017-04-11 15:58:36.772296: ea:50:a5:23:3a:e2
-egress_vnf_c_1   | 2017-04-11 15:58:36.784983: ea:50:a5:23:3a:e2
-ingress_vnf_a_1  | 2017-04-11 15:58:36.795972: a6:fd:73:03:e4:3e
-ingress_vnf_b_1  | 2017-04-11 15:58:36.804086: a6:fd:73:03:e4:3e
+CX[Subscriber-A]  : 10.1.0.4:5080
++TX[Subscriber-A] : 10.1.0.4:5080 -> Hello
++RX[Subscriber-A] : 10.1.0.4:5080 -> Good morning
++DX[Subscriber-A] : 10.1.0.4:5080
+docker exec -ti subscriber_b ash -c 'UDP_SEND_IP=10.1.0.3 python ./send-udp.py'
+WHO_AM_I   : Subscriber-B
+RX         : 0.0.0.0:5067
+TX         : 10.1.0.3:5068
+MSG        : Hello
+RETRY_COUNT: 5
+-----
+TX[Subscriber-B]  : 10.1.0.3:5068 -> Hello
++RX[Subscriber-B] : 10.1.0.3:59976 -> "UDP for subscriber B"
+docker exec -ti subscriber_b ash -c 'TCP_SEND_IP=10.1.0.4 python ./send-tcp.py'
+WHO_AM_I   : Subscriber-B
+TX         : 10.1.0.4:5080
+MSG        : Hello
+-----
+CX[Subscriber-B]  : 10.1.0.4:5080
++TX[Subscriber-B] : 10.1.0.4:5080 -> Hello
++RX[Subscriber-B] : 10.1.0.4:5080 -> Good morning
++DX[Subscriber-B] : 10.1.0.4:5080
 ```
 
 #### Clean Up
