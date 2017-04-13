@@ -1,5 +1,6 @@
 import socket, os
 
+WHO_AM_I = os.environ.get('WHO_AM_I', 'subscriber')
 UDP_SEND_IP = os.environ.get('UDP_SEND_IP', '127.0.0.1')
 UDP_SEND_PORT = int(os.environ.get('UDP_SEND_PORT', 5068))
 UDP_RECEIVE_IP = os.environ.get('UDP_RECEIVE_IP', '0.0.0.0')
@@ -7,6 +8,7 @@ UDP_RECEIVE_PORT = int(os.environ.get('UDP_RECEIVE_PORT', 5067))
 RETRY_COUNT = int(os.environ.get('RETRY_COUNT', 5))
 MESSAGE = 'Hello'
 
+print "WHO_AM_I   : %s" % WHO_AM_I
 print "RX         : %s:%s" % (UDP_RECEIVE_IP, UDP_RECEIVE_PORT)
 print "TX         : %s:%s" % (UDP_SEND_IP, UDP_SEND_PORT)
 print "MSG        : %s" % MESSAGE
@@ -22,15 +24,15 @@ receive_sock.settimeout(3)
 receive_sock.bind((UDP_RECEIVE_IP, UDP_RECEIVE_PORT))
 
 while RETRY_COUNT > 0:
-    print "TX  : %s:%s -> %s" % (UDP_SEND_IP, UDP_SEND_PORT, MESSAGE)
+    print "TX[%s]  : %s:%s -> %s" % (WHO_AM_I, UDP_SEND_IP, UDP_SEND_PORT, MESSAGE)
     send_sock.sendto(MESSAGE, (UDP_SEND_IP, UDP_SEND_PORT))
 
     try:
         data, addr = receive_sock.recvfrom(1024)
     except (socket.timeout):
-        print "+TIMEOUT"
+        print "+TIMEOUT[%s]" % WHO_AM_I
         RETRY_COUNT -= 1
         continue
 
-    print "+RX : %s:%s -> %s " % (addr[0], addr[1], data)
+    print "+RX[%s] : %s:%s -> %s " % (WHO_AM_I, addr[0], addr[1], data)
     break

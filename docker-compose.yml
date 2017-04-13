@@ -1,50 +1,83 @@
 version: '2'
 
 services:
-    client:
-        image: ciena/client
+    subscriber_a:
+        container_name: subscriber_a
+        image: ciena/subscriber
+        environment:
+        - WHO_AM_I=Subscriber-A
+        cap_add:
+        - ALL
+        network_mode: none
+
+    subscriber_b:
+        container_name: subscriber_b
+        image: ciena/subscriber
+        environment:
+        - WHO_AM_I=Subscriber-B
         cap_add:
         - ALL
         network_mode: none
 
     uplink:
-        image: ciena/client
+        container_name: uplink
+        image: ciena/subscriber
         cap_add:
         - ALL
         
     egress_vnf_a:
+        container_name: egress_vnf_a
         image: ciena/vnf
         environment:
         - DEBUG=true
-        - MASK=00:00:00:00:11:11
 
-    egress_vnf_b:
+    egress_vnf_b_subscriber_a:
+        container_name: egress_vnf_b_subscriber_a
         image: ciena/vnf
         environment:
         - DEBUG=true
-        - MASK=00:00:11:11:00:00
+
+    egress_vnf_b_subscriber_b:
+        container_name: egress_vnf_b_subscriber_b
+        image: ciena/vnf
+        environment:
+        - DEBUG=true
 
     egress_vnf_c:
+        container_name: egress_vnf_c
         image: ciena/vnf
         environment:
         - DEBUG=true
-        - MASK=11:11:00:00:00:00
-        - DROP=11:22:33:44:55:66
 
     ingress_vnf_a:
+        container_name: ingress_vnf_a
         image: ciena/vnf
         environment:
         - DEBUG=true
 
     ingress_vnf_b:
+        container_name: ingress_vnf_b
         image: ciena/vnf
         environment:
         - DEBUG=true
 
-    svc_udp:
+    udp_service_subscriber_a:
+        container_name: udp_service_subscriber_a
         image: ciena/udp-svc
         network_mode: none
+        environment:
+        - MESSAGE="UDP for subscriber A"
 
-    svc_tcp:
+    udp_service_subscriber_b:
+        container_name: udp_service_subscriber_b
+        image: ciena/udp-svc
+        network_mode: none
+        environment:
+        - MESSAGE="UDP for subscriber B"
+
+    tcp_service:
+        container_name: tcp_service
         image: ciena/tcp-svc
         network_mode: none
+        cap_add:
+        - ALL
