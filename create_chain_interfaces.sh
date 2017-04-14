@@ -27,8 +27,12 @@ sudo ovs-docker add-port chain eth0 udp_service_subscriber_b --ipaddress=10.1.0.
 sudo ovs-docker add-port chain eth0 tcp_service --ipaddress=10.1.0.4/24
 sudo ovs-docker add-port chain in0 ingress_vnf_a
 sudo ovs-docker add-port chain out0 ingress_vnf_a
-sudo ovs-docker add-port chain in0 ingress_vnf_b
-sudo ovs-docker add-port chain out0 ingress_vnf_b
+sudo ovs-docker add-port chain in0 ingress_vnf_b_instance_1
+sudo ovs-docker add-port chain out0 ingress_vnf_b_instance_1
+sudo ovs-docker add-port chain in0 ingress_vnf_b_instance_2
+sudo ovs-docker add-port chain out0 ingress_vnf_b_instance_2
+sudo ovs-docker add-port chain in0 ingress_vnf_b_instance_3
+sudo ovs-docker add-port chain out0 ingress_vnf_b_instance_3
 
 # Turn off check sum offloading. This was causing bad checksum calculations
 for i in $(ifconfig | grep -v "^[~ ]" | grep Link | awk '{print $1}'); do

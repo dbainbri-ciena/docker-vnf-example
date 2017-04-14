@@ -2,19 +2,25 @@
 This project demonstrates how VNF chaining could work within an environment
 where each VNF is a docker container and an OVS (OpenVSwitch) is used with
 OpenFlow to control the flow of a packet from a source, through the chain, and
-then to be received by a destination. The basic layout and flow of the VNF
+then to be received by a destination. The basic logical flow of the VNF
 chain is depicted in the figure below. Included in this example is not only
 vNF chaining, as represented by the `vNF` entries, but also tenant networking
 that allows the client to access some vNFs via layer 3 routing, as represented
 by the `SVC` entries.
 
 The example demonstrates the a user case with two distinct subscribers as well
-as some vNFs that are shared and some vNFs that are unique per subscriber.
+as some vNFs that are shared and some vNFs that are unique per subscriber. Also
+demonstrated is a shared vNF that is load balanced between 3 instances.
+
+![](./logical.png)
+
+The vNF chain demonstrated by this example uses the physical layout depicted
+below:
+
+![](./physical.png)
 
 _**TODO:** While the user case depicts a connection to the Internet this aspect of
 the use case is not yet supported._
-
-![](./vnf-chain.png)
 
 The formula used for this demonstration is that each VNF is assigned two (2)
 data plane interfaces, `in0` and `out0`. It is the requirement of the the VNF
@@ -26,14 +32,24 @@ layer 3 capabilities utilizing that single interface for TX and RX.
 
 OpenFlow (OF) rules are applied to the OVS such that packets flow through the
 vNFs using `port_in` and `output` rules along with more detailed rules to
-support the L3 (SVC) vNFs. In general, taffic is flowed to the `in0` port on
+support the L3 (SVC) vNFs. In general, traffic is flowed to the `in0` port on
 a vNF and then from the `out0` port of that vNF to the `in0` port on the next
 vNF in the chain.
+
+To support load balancing of vNF instance OF select groups are utilized.
 
 After the packet has reached its destination the flow rules then ensure that
 the packet traverses the ingress vNF chain back to the subscriber.
 
-These OF rules ensure the path of any packet once it enters the chain.
+These OF rules ensure the path of any packet once it enters the chain. The
+OF rules applied to implement this use case can be found in
+[`flows.input`](./flows.input). This input file is a template containing a
+series of `bash` shell commands that create OF rules on the OVS. Two types of
+values are substituted into this template:
+- OVS port numbers for a given interface name on a given container, specified
+within parenthesis, e.g., `(egress_vnf_a,in0)`
+- MAC addresses for a given interface name on a given container, specified
+within squiggly brackets, e.g., `{egress_vnf_a,in0}`
 
 ## Installation and Deployment
 This project leverages **Vagrant** and so for easiest usage you should have
@@ -101,55 +117,50 @@ The VNFs provide some logging while processing packets. The essentially
 output a time stamp when the processed the packet and the ethernet src
 MAC after it has been modified. An example of this output is below:
 ```
-egress_vnf_a                 | 2017-04-13 20:23:36.868775: ca:fe:00:00:00:01
-egress_vnf_b_subscriber_a    | 2017-04-13 20:23:36.881134: ca:fe:00:00:00:01
-egress_vnf_c                 | 2017-04-13 20:23:36.896799: ca:fe:00:00:00:01
-udp_service_subscriber_a     | RX  : 10.1.0.2:44697 -> Hello
+egress_vnf_a                 | 2017-04-14 00:55:03.459763: ca:fe:00:00:00:01
+egress_vnf_b_subscriber_a    | 2017-04-14 00:55:03.472348: ca:fe:00:00:00:01
+egress_vnf_c                 | 2017-04-14 00:55:03.484280: ca:fe:00:00:00:01
+udp_service_subscriber_a     | RX  : 10.1.0.2:47388 -> Hello
 udp_service_subscriber_a     | +TX : 10.1.0.2:5067 -> "UDP for subscriber A"
-ingress_vnf_a                | 2017-04-13 20:23:36.908561: fe:c0:ed:09:28:a5
-ingress_vnf_b                | 2017-04-13 20:23:36.924427: fe:c0:ed:09:28:a5
-egress_vnf_a                 | 2017-04-13 20:23:37.000032: ca:fe:00:00:00:01
-egress_vnf_b_subscriber_a    | 2017-04-13 20:23:37.007819: ca:fe:00:00:00:01
-egress_vnf_c                 | 2017-04-13 20:23:37.024141: ca:fe:00:00:00:01
-ingress_vnf_a                | 2017-04-13 20:23:37.043432: ee:3e:c8:cc:6a:74
-ingress_vnf_b                | 2017-04-13 20:23:37.056544: ee:3e:c8:cc:6a:74
-egress_vnf_a                 | 2017-04-13 20:23:37.067981: ca:fe:00:00:00:01
-egress_vnf_b_subscriber_a    | 2017-04-13 20:23:37.080257: ca:fe:00:00:00:01
-egress_vnf_a                 | 2017-04-13 20:23:37.092454: ca:fe:00:00:00:01
-egress_vnf_c                 | 2017-04-13 20:23:37.094329: ca:fe:00:00:00:01
-tcp_service                  | CX  : 10.1.0.2:35324
-egress_vnf_b_subscriber_a    | 2017-04-13 20:23:37.108548: ca:fe:00:00:00:01
-egress_vnf_c                 | 2017-04-13 20:23:37.121992: ca:fe:00:00:00:01
-tcp_service                  | +RX : 10.1.0.2:35324 -> Hello
-tcp_service                  | +TX : 10.1.0.2:35324 -> Good morning
-tcp_service                  | +DX : 10.1.0.2:35324
-ingress_vnf_a                | 2017-04-13 20:23:37.136061: ee:3e:c8:cc:6a:74
-ingress_vnf_b                | 2017-04-13 20:23:37.144429: ee:3e:c8:cc:6a:74
-ingress_vnf_a                | 2017-04-13 20:23:37.155531: ee:3e:c8:cc:6a:74
-ingress_vnf_b                | 2017-04-13 20:23:37.168617: ee:3e:c8:cc:6a:74
-ingress_vnf_a                | 2017-04-13 20:23:37.179522: ee:3e:c8:cc:6a:74
-egress_vnf_a                 | 2017-04-13 20:23:37.181460: ca:fe:00:00:00:01
-ingress_vnf_b                | 2017-04-13 20:23:37.192006: ee:3e:c8:cc:6a:74
-egress_vnf_b_subscriber_a    | 2017-04-13 20:23:37.192737: ca:fe:00:00:00:01
-egress_vnf_a                 | 2017-04-13 20:23:37.204245: ca:fe:00:00:00:01
-egress_vnf_c                 | 2017-04-13 20:23:37.205428: ca:fe:00:00:00:01
-egress_vnf_b_subscriber_a    | 2017-04-13 20:23:37.216031: ca:fe:00:00:00:01
-egress_vnf_a                 | 2017-04-13 20:23:37.227030: ca:fe:00:00:00:01
-egress_vnf_c                 | 2017-04-13 20:23:37.227822: ca:fe:00:00:00:01
-ingress_vnf_a                | 2017-04-13 20:23:37.240120: ee:3e:c8:cc:6a:74
-egress_vnf_b_subscriber_a    | 2017-04-13 20:23:37.241267: ca:fe:00:00:00:01
-egress_vnf_c                 | 2017-04-13 20:23:37.252206: ca:fe:00:00:00:01
-ingress_vnf_b                | 2017-04-13 20:23:37.253760: ee:3e:c8:cc:6a:74
-egress_vnf_a                 | 2017-04-13 20:23:41.886572: ca:fe:00:00:00:01
-egress_vnf_b_subscriber_a    | 2017-04-13 20:23:41.900095: ca:fe:00:00:00:01
-egress_vnf_c                 | 2017-04-13 20:23:41.912709: ca:fe:00:00:00:01
-ingress_vnf_a                | 2017-04-13 20:23:41.919018: fe:c0:ed:09:28:a5
-ingress_vnf_b                | 2017-04-13 20:23:41.936793: fe:c0:ed:09:28:a5
-egress_vnf_a                 | 2017-04-13 20:23:41.948082: ca:fe:00:00:00:01
-ingress_vnf_a                | 2017-04-13 20:23:41.951329: fe:c0:ed:09:28:a5
-egress_vnf_b_subscriber_a    | 2017-04-13 20:23:41.963417: ca:fe:00:00:00:01
-ingress_vnf_b                | 2017-04-13 20:23:41.964026: fe:c0:ed:09:28:a5
-egress_vnf_c                 | 2017-04-13 20:23:41.975391: ca:fe:00:00:00:01
+ingress_vnf_a                | 2017-04-14 00:55:03.497328: fe:7d:0f:98:b6:f8
+ingress_vnf_b_instance_3     | 2017-04-14 00:55:03.516510: fe:7d:0f:98:b6:f8
+egress_vnf_a                 | 2017-04-14 00:55:03.599648: ca:fe:00:00:00:01
+egress_vnf_b_subscriber_a    | 2017-04-14 00:55:03.612347: ca:fe:00:00:00:01
+egress_vnf_c                 | 2017-04-14 00:55:03.625149: ca:fe:00:00:00:01
+ingress_vnf_a                | 2017-04-14 00:55:03.636765: 0a:70:87:ae:e6:38
+ingress_vnf_b_instance_1     | 2017-04-14 00:55:03.648773: 0a:70:87:ae:e6:38
+egress_vnf_a                 | 2017-04-14 00:55:03.660186: ca:fe:00:00:00:01
+egress_vnf_b_subscriber_a    | 2017-04-14 00:55:03.673390: ca:fe:00:00:00:01
+egress_vnf_a                 | 2017-04-14 00:55:03.679781: ca:fe:00:00:00:01
+egress_vnf_c                 | 2017-04-14 00:55:03.684234: ca:fe:00:00:00:01
+tcp_service                  | CX  : 10.1.0.2:35354
+egress_vnf_b_subscriber_a    | 2017-04-14 00:55:03.700063: ca:fe:00:00:00:01
+egress_vnf_c                 | 2017-04-14 00:55:03.717288: ca:fe:00:00:00:01
+tcp_service                  | +RX : 10.1.0.2:35354 -> Hello
+tcp_service                  | +TX : 10.1.0.2:35354 -> Good morning
+tcp_service                  | +DX : 10.1.0.2:35354
+ingress_vnf_a                | 2017-04-14 00:55:03.732700: 0a:70:87:ae:e6:38
+ingress_vnf_b_instance_1     | 2017-04-14 00:55:03.749269: 0a:70:87:ae:e6:38
+ingress_vnf_a                | 2017-04-14 00:55:03.761407: 0a:70:87:ae:e6:38
+ingress_vnf_b_instance_1     | 2017-04-14 00:55:03.788277: 0a:70:87:ae:e6:38
+ingress_vnf_a                | 2017-04-14 00:55:03.792174: 0a:70:87:ae:e6:38
+egress_vnf_a                 | 2017-04-14 00:55:03.804480: ca:fe:00:00:00:01
+ingress_vnf_b_instance_1     | 2017-04-14 00:55:03.815538: 0a:70:87:ae:e6:38
+egress_vnf_b_subscriber_a    | 2017-04-14 00:55:03.821677: ca:fe:00:00:00:01
+egress_vnf_a                 | 2017-04-14 00:55:03.832538: ca:fe:00:00:00:01
+egress_vnf_c                 | 2017-04-14 00:55:03.836708: ca:fe:00:00:00:01
+egress_vnf_b_subscriber_a    | 2017-04-14 00:55:03.855892: ca:fe:00:00:00:01
+egress_vnf_a                 | 2017-04-14 00:55:03.868945: ca:fe:00:00:00:01
+egress_vnf_c                 | 2017-04-14 00:55:03.872867: ca:fe:00:00:00:01
+egress_vnf_b_subscriber_a    | 2017-04-14 00:55:03.888350: ca:fe:00:00:00:01
+ingress_vnf_a                | 2017-04-14 00:55:03.888477: 0a:70:87:ae:e6:38
+ingress_vnf_b_instance_1     | 2017-04-14 00:55:03.900209: 0a:70:87:ae:e6:38
+egress_vnf_c                 | 2017-04-14 00:55:03.908538: ca:fe:00:00:00:01
+ingress_vnf_a                | 2017-04-14 00:55:08.505692: fe:7d:0f:98:b6:f8
+ingress_vnf_b_instance_2     | 2017-04-14 00:55:08.515645: fe:7d:0f:98:b6:f8
+egress_vnf_a                 | 2017-04-14 00:55:08.528094: ca:fe:00:00:00:01
+egress_vnf_b_subscriber_a    | 2017-04-14 00:55:08.539703: ca:fe:00:00:00:01
+egress_vnf_c                 | 2017-04-14 00:55:08.551499: ca:fe:00:00:00:01
 ```
 
 The logs of the VNFs can be viewed by using the `make` target `logs`

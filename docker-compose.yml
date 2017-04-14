@@ -55,8 +55,20 @@ services:
         environment:
         - DEBUG=true
 
-    ingress_vnf_b:
-        container_name: ingress_vnf_b
+    ingress_vnf_b_instance_1:
+        container_name: ingress_vnf_b_instance_1
+        image: ciena/vnf
+        environment:
+        - DEBUG=true
+
+    ingress_vnf_b_instance_2:
+        container_name: ingress_vnf_b_instance_2
+        image: ciena/vnf
+        environment:
+        - DEBUG=true
+
+    ingress_vnf_b_instance_3:
+        container_name: ingress_vnf_b_instance_3
         image: ciena/vnf
         environment:
         - DEBUG=true

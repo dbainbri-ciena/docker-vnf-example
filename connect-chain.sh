@@ -1,23 +1,6 @@
 #!/bin/bash
 
-LIST="subscriber_a,eth0 \
-subscriber_b,eth0 \
-egress_vnf_a,in0 \
-egress_vnf_a,out0 \
-egress_vnf_b_subscriber_a,in0 \
-egress_vnf_b_subscriber_a,out0 \
-egress_vnf_b_subscriber_b,in0 \
-egress_vnf_b_subscriber_b,out0 \
-egress_vnf_c,in0 \
-egress_vnf_c,out0 \
-ingress_vnf_a,in0 \
-ingress_vnf_a,out0 \
-ingress_vnf_b,in0 \
-ingress_vnf_b,out0 \
-udp_service_subscriber_a,eth0 \
-udp_service_subscriber_b,eth0 \
-tcp_service,eth0 \
-uplink,up0"
+LIST=$(grep add-port create_chain_interfaces.sh | awk '{printf("%s,%s\n", $6, $5)}')
 
 TMPA=$(tempfile)
 TMPB=$(tempfile)

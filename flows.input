@@ -36,12 +36,17 @@ sudo ovs-ofctl add-flow -OOpenFlow13 chain table=0,in_port=(tcp_service,eth0),ac
 # Internet to ingress vNF A
 sudo ovs-ofctl add-flow -OOpenFlow13 chain table=0,in_port=(uplink,up0),actions=output:(ingress_vnf_a,in0)
 
-# ingress vNF A to ingress vNF B
-sudo ovs-ofctl add-flow -OOpenFlow13 chain table=0,in_port=(ingress_vnf_a,out0),actions=output:(ingress_vnf_b,in0)
+# ingress vNF A to a random instance of ingress vNF B
+sudo ovs-ofctl add-group -OOpenFlow13 chain group_id=1234,type=select,bucket=output:(ingress_vnf_b_instance_1,in0),bucket=output:(ingress_vnf_b_instance_2,in0),bucket=output:(ingress_vnf_b_instance_3,in0)
+sudo ovs-ofctl add-flow -OOpenFlow13 chain table=0,in_port=(ingress_vnf_a,out0),actions=group:1234
 
 # ingress vNF B to subscriber, subscriber specific
-sudo ovs-ofctl add-flow -OOpenFlow13 chain table=0,in_port=(ingress_vnf_b,out0),dl_dst={subscriber_a,eth0},actions=output:(subscriber_a,eth0)
-sudo ovs-ofctl add-flow -OOpenFlow13 chain table=0,in_port=(ingress_vnf_b,out0),dl_dst={subscriber_b,eth0},actions=output:(subscriber_b,eth0)
+sudo ovs-ofctl add-flow -OOpenFlow13 chain table=0,in_port=(ingress_vnf_b_instance_1,out0),dl_dst={subscriber_a,eth0},actions=output:(subscriber_a,eth0)
+sudo ovs-ofctl add-flow -OOpenFlow13 chain table=0,in_port=(ingress_vnf_b_instance_2,out0),dl_dst={subscriber_a,eth0},actions=output:(subscriber_a,eth0)
+sudo ovs-ofctl add-flow -OOpenFlow13 chain table=0,in_port=(ingress_vnf_b_instance_3,out0),dl_dst={subscriber_a,eth0},actions=output:(subscriber_a,eth0)
+sudo ovs-ofctl add-flow -OOpenFlow13 chain table=0,in_port=(ingress_vnf_b_instance_1,out0),dl_dst={subscriber_b,eth0},actions=output:(subscriber_b,eth0)
+sudo ovs-ofctl add-flow -OOpenFlow13 chain table=0,in_port=(ingress_vnf_b_instance_2,out0),dl_dst={subscriber_b,eth0},actions=output:(subscriber_b,eth0)
+sudo ovs-ofctl add-flow -OOpenFlow13 chain table=0,in_port=(ingress_vnf_b_instance_3,out0),dl_dst={subscriber_b,eth0},actions=output:(subscriber_b,eth0)
 
 # On egress of vNF C, match on DST IP to service vNF or distribute everywhere
 sudo ovs-ofctl add-flow -OOpenFlow13 chain table=10,dl_src={subscriber_a,eth0},ip,nw_dst=10.1.0.3,actions=output:(udp_service_subscriber_a,eth0)
