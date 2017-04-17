@@ -118,50 +118,84 @@ The VNFs provide some logging while processing packets. The essentially
 output a time stamp when the processed the packet and the ethernet src
 MAC after it has been modified. An example of this output is below:
 ```
-egress_vnf_a                 | 2017-04-14 00:55:03.459763: ca:fe:00:00:00:01
-egress_vnf_b_subscriber_a    | 2017-04-14 00:55:03.472348: ca:fe:00:00:00:01
-egress_vnf_c                 | 2017-04-14 00:55:03.484280: ca:fe:00:00:00:01
-udp_service_subscriber_a     | RX  : 10.1.0.2:47388 -> Hello
+egress_vnf_a                 | 2017-04-17 22:33:06.704577: ca:fe:00:00:00:01
+egress_vnf_b_subscriber_a    | 2017-04-17 22:33:06.715631: ca:fe:00:00:00:01
+egress_vnf_c                 | 2017-04-17 22:33:06.727292: ca:fe:00:00:00:01
+ingress_vnf_a                | 2017-04-17 22:33:06.739111: de:64:29:41:c4:79
+udp_service_subscriber_a     | RX  : 10.1.0.2:54419 -> Hello
 udp_service_subscriber_a     | +TX : 10.1.0.2:5067 -> "UDP for subscriber A"
-ingress_vnf_a                | 2017-04-14 00:55:03.497328: fe:7d:0f:98:b6:f8
-ingress_vnf_b_instance_3     | 2017-04-14 00:55:03.516510: fe:7d:0f:98:b6:f8
-egress_vnf_a                 | 2017-04-14 00:55:03.599648: ca:fe:00:00:00:01
-egress_vnf_b_subscriber_a    | 2017-04-14 00:55:03.612347: ca:fe:00:00:00:01
-egress_vnf_c                 | 2017-04-14 00:55:03.625149: ca:fe:00:00:00:01
-ingress_vnf_a                | 2017-04-14 00:55:03.636765: 0a:70:87:ae:e6:38
-ingress_vnf_b_instance_1     | 2017-04-14 00:55:03.648773: 0a:70:87:ae:e6:38
-egress_vnf_a                 | 2017-04-14 00:55:03.660186: ca:fe:00:00:00:01
-egress_vnf_b_subscriber_a    | 2017-04-14 00:55:03.673390: ca:fe:00:00:00:01
-egress_vnf_a                 | 2017-04-14 00:55:03.679781: ca:fe:00:00:00:01
-egress_vnf_c                 | 2017-04-14 00:55:03.684234: ca:fe:00:00:00:01
-tcp_service                  | CX  : 10.1.0.2:35354
-egress_vnf_b_subscriber_a    | 2017-04-14 00:55:03.700063: ca:fe:00:00:00:01
-egress_vnf_c                 | 2017-04-14 00:55:03.717288: ca:fe:00:00:00:01
-tcp_service                  | +RX : 10.1.0.2:35354 -> Hello
-tcp_service                  | +TX : 10.1.0.2:35354 -> Good morning
-tcp_service                  | +DX : 10.1.0.2:35354
-ingress_vnf_a                | 2017-04-14 00:55:03.732700: 0a:70:87:ae:e6:38
-ingress_vnf_b_instance_1     | 2017-04-14 00:55:03.749269: 0a:70:87:ae:e6:38
-ingress_vnf_a                | 2017-04-14 00:55:03.761407: 0a:70:87:ae:e6:38
-ingress_vnf_b_instance_1     | 2017-04-14 00:55:03.788277: 0a:70:87:ae:e6:38
-ingress_vnf_a                | 2017-04-14 00:55:03.792174: 0a:70:87:ae:e6:38
-egress_vnf_a                 | 2017-04-14 00:55:03.804480: ca:fe:00:00:00:01
-ingress_vnf_b_instance_1     | 2017-04-14 00:55:03.815538: 0a:70:87:ae:e6:38
-egress_vnf_b_subscriber_a    | 2017-04-14 00:55:03.821677: ca:fe:00:00:00:01
-egress_vnf_a                 | 2017-04-14 00:55:03.832538: ca:fe:00:00:00:01
-egress_vnf_c                 | 2017-04-14 00:55:03.836708: ca:fe:00:00:00:01
-egress_vnf_b_subscriber_a    | 2017-04-14 00:55:03.855892: ca:fe:00:00:00:01
-egress_vnf_a                 | 2017-04-14 00:55:03.868945: ca:fe:00:00:00:01
-egress_vnf_c                 | 2017-04-14 00:55:03.872867: ca:fe:00:00:00:01
-egress_vnf_b_subscriber_a    | 2017-04-14 00:55:03.888350: ca:fe:00:00:00:01
-ingress_vnf_a                | 2017-04-14 00:55:03.888477: 0a:70:87:ae:e6:38
-ingress_vnf_b_instance_1     | 2017-04-14 00:55:03.900209: 0a:70:87:ae:e6:38
-egress_vnf_c                 | 2017-04-14 00:55:03.908538: ca:fe:00:00:00:01
-ingress_vnf_a                | 2017-04-14 00:55:08.505692: fe:7d:0f:98:b6:f8
-ingress_vnf_b_instance_2     | 2017-04-14 00:55:08.515645: fe:7d:0f:98:b6:f8
-egress_vnf_a                 | 2017-04-14 00:55:08.528094: ca:fe:00:00:00:01
-egress_vnf_b_subscriber_a    | 2017-04-14 00:55:08.539703: ca:fe:00:00:00:01
-egress_vnf_c                 | 2017-04-14 00:55:08.551499: ca:fe:00:00:00:01
+ingress_vnf_b_instance_3     | 2017-04-17 22:33:06.752651: de:64:29:41:c4:79
+egress_vnf_a                 | 2017-04-17 22:33:06.828234: ca:fe:00:00:00:01
+egress_vnf_b_subscriber_a    | 2017-04-17 22:33:06.839637: ca:fe:00:00:00:01
+egress_vnf_c                 | 2017-04-17 22:33:06.851480: ca:fe:00:00:00:01
+ingress_vnf_a                | 2017-04-17 22:33:06.863679: da:1f:8a:40:18:4f
+ingress_vnf_b_instance_2     | 2017-04-17 22:33:06.876059: da:1f:8a:40:18:4f
+egress_vnf_a                 | 2017-04-17 22:33:06.887080: ca:fe:00:00:00:01
+egress_vnf_b_subscriber_a    | 2017-04-17 22:33:06.899193: ca:fe:00:00:00:01
+egress_vnf_a                 | 2017-04-17 22:33:06.911051: ca:fe:00:00:00:01
+egress_vnf_c                 | 2017-04-17 22:33:06.911153: ca:fe:00:00:00:01
+tcp_service_instance_2       | CX  : 10.1.0.2:46418
+egress_vnf_b_subscriber_a    | 2017-04-17 22:33:06.927165: ca:fe:00:00:00:01
+egress_vnf_c                 | 2017-04-17 22:33:06.943354: ca:fe:00:00:00:01
+tcp_service_instance_2       | +RX : 10.1.0.2:46418 -> Hello
+tcp_service_instance_2       | +TX : 10.1.0.2:46418 -> "TCP Service Instance 2"
+tcp_service_instance_2       | +DX : 10.1.0.2:46418
+ingress_vnf_a                | 2017-04-17 22:33:06.955922: da:1f:8a:40:18:4f
+ingress_vnf_b_instance_2     | 2017-04-17 22:33:06.966968: da:1f:8a:40:18:4f
+ingress_vnf_a                | 2017-04-17 22:33:06.978899: da:1f:8a:40:18:4f
+ingress_vnf_b_instance_2     | 2017-04-17 22:33:06.991434: da:1f:8a:40:18:4f
+egress_vnf_a                 | 2017-04-17 22:33:07.003826: ca:fe:00:00:00:01
+ingress_vnf_a                | 2017-04-17 22:33:07.004457: da:1f:8a:40:18:4f
+ingress_vnf_b_instance_2     | 2017-04-17 22:33:07.020134: da:1f:8a:40:18:4f
+egress_vnf_a                 | 2017-04-17 22:33:07.026546: ca:fe:00:00:00:01
+egress_vnf_c                 | 2017-04-17 22:33:07.026598: ca:fe:00:00:00:01
+egress_vnf_b_subscriber_a    | 2017-04-17 22:33:07.018825: ca:fe:00:00:00:01
+egress_vnf_b_subscriber_a    | 2017-04-17 22:33:07.043861: ca:fe:00:00:00:01
+egress_vnf_a                 | 2017-04-17 22:33:07.050560: ca:fe:00:00:00:01
+egress_vnf_c                 | 2017-04-17 22:33:07.054402: ca:fe:00:00:00:01
+egress_vnf_b_subscriber_a    | 2017-04-17 22:33:07.063220: ca:fe:00:00:00:01
+ingress_vnf_a                | 2017-04-17 22:33:07.082121: da:1f:8a:40:18:4f
+egress_vnf_a                 | 2017-04-17 22:33:07.086442: ca:fe:00:00:00:02
+egress_vnf_c                 | 2017-04-17 22:33:07.090927: ca:fe:00:00:00:01
+ingress_vnf_b_instance_2     | 2017-04-17 22:33:07.096618: da:1f:8a:40:18:4f
+egress_vnf_b_subscriber_b    | 2017-04-17 22:33:07.097746: ca:fe:00:00:00:02
+egress_vnf_c                 | 2017-04-17 22:33:07.122552: ca:fe:00:00:00:02
+udp_service_subscriber_b     | RX  : 10.1.0.5:38743 -> Hello
+udp_service_subscriber_b     | +TX : 10.1.0.5:5067 -> "UDP for subscriber B"
+ingress_vnf_a                | 2017-04-17 22:33:07.134037: 52:84:dd:16:4b:6a
+ingress_vnf_b_instance_1     | 2017-04-17 22:33:07.143281: 52:84:dd:16:4b:6a
+egress_vnf_a                 | 2017-04-17 22:33:07.220052: ca:fe:00:00:00:02
+egress_vnf_b_subscriber_b    | 2017-04-17 22:33:07.232221: ca:fe:00:00:00:02
+egress_vnf_c                 | 2017-04-17 22:33:07.242991: ca:fe:00:00:00:02
+ingress_vnf_a                | 2017-04-17 22:33:07.255598: da:1f:8a:40:18:4f
+ingress_vnf_b_instance_1     | 2017-04-17 22:33:07.267346: da:1f:8a:40:18:4f
+egress_vnf_a                 | 2017-04-17 22:33:07.280743: ca:fe:00:00:00:02
+egress_vnf_b_subscriber_b    | 2017-04-17 22:33:07.299539: ca:fe:00:00:00:02
+egress_vnf_a                 | 2017-04-17 22:33:07.316393: ca:fe:00:00:00:02
+egress_vnf_c                 | 2017-04-17 22:33:07.317199: ca:fe:00:00:00:02
+egress_vnf_b_subscriber_b    | 2017-04-17 22:33:07.327162: ca:fe:00:00:00:02
+tcp_service_instance_2       | CX  : 10.1.0.5:60282
+egress_vnf_c                 | 2017-04-17 22:33:07.350348: ca:fe:00:00:00:02
+tcp_service_instance_2       | +RX : 10.1.0.5:60282 -> Hello
+tcp_service_instance_2       | +TX : 10.1.0.5:60282 -> "TCP Service Instance 2"
+tcp_service_instance_2       | +DX : 10.1.0.5:60282
+ingress_vnf_a                | 2017-04-17 22:33:07.364415: da:1f:8a:40:18:4f
+ingress_vnf_b_instance_1     | 2017-04-17 22:33:07.375037: da:1f:8a:40:18:4f
+ingress_vnf_a                | 2017-04-17 22:33:07.387337: da:1f:8a:40:18:4f
+ingress_vnf_b_instance_1     | 2017-04-17 22:33:07.406640: da:1f:8a:40:18:4f
+ingress_vnf_a                | 2017-04-17 22:33:07.410497: da:1f:8a:40:18:4f
+egress_vnf_a                 | 2017-04-17 22:33:07.424161: ca:fe:00:00:00:02
+ingress_vnf_b_instance_1     | 2017-04-17 22:33:07.438532: da:1f:8a:40:18:4f
+egress_vnf_b_subscriber_b    | 2017-04-17 22:33:07.439514: ca:fe:00:00:00:02
+egress_vnf_a                 | 2017-04-17 22:33:07.450150: ca:fe:00:00:00:02
+egress_vnf_c                 | 2017-04-17 22:33:07.451901: ca:fe:00:00:00:02
+egress_vnf_b_subscriber_b    | 2017-04-17 22:33:07.464088: ca:fe:00:00:00:02
+egress_vnf_a                 | 2017-04-17 22:33:07.474259: ca:fe:00:00:00:02
+egress_vnf_c                 | 2017-04-17 22:33:07.478067: ca:fe:00:00:00:02
+egress_vnf_b_subscriber_b    | 2017-04-17 22:33:07.490955: ca:fe:00:00:00:02
+ingress_vnf_a                | 2017-04-17 22:33:07.491297: da:1f:8a:40:18:4f
+ingress_vnf_b_instance_1     | 2017-04-17 22:33:07.503310: da:1f:8a:40:18:4f
+egress_vnf_c                 | 2017-04-17 22:33:07.505116: ca:fe:00:00:00:02
 ```
 
 The logs of the VNFs can be viewed by using the `make` target `logs`
@@ -187,16 +221,16 @@ MSG        : Hello
 RETRY_COUNT: 5
 -----
 TX[Subscriber-A]  : 10.1.0.3:5068 -> Hello
-+RX[Subscriber-A] : 10.1.0.3:37894 -> "UDP for subscriber A"
-docker exec -ti subscriber_a ash -c 'TCP_SEND_IP=10.1.0.4 python ./send-tcp.py'
++RX[Subscriber-A] : 10.1.0.3:46195 -> "UDP for subscriber A"
+docker exec -ti subscriber_a ash -c 'TCP_SEND_IP=10.1.0.7 python ./send-tcp.py'
 WHO_AM_I   : Subscriber-A
-TX         : 10.1.0.4:5080
+TX         : 10.1.0.7:5080
 MSG        : Hello
 -----
-CX[Subscriber-A]  : 10.1.0.4:5080
-+TX[Subscriber-A] : 10.1.0.4:5080 -> Hello
-+RX[Subscriber-A] : 10.1.0.4:5080 -> Good morning
-+DX[Subscriber-A] : 10.1.0.4:5080
+CX[Subscriber-A]  : 10.1.0.7:5080
++TX[Subscriber-A] : 10.1.0.7:5080 -> Hello
++RX[Subscriber-A] : 10.1.0.7:5080 -> "TCP Service Instance 2"
++DX[Subscriber-A] : 10.1.0.7:5080
 docker exec -ti subscriber_b ash -c 'UDP_SEND_IP=10.1.0.3 python ./send-udp.py'
 WHO_AM_I   : Subscriber-B
 RX         : 0.0.0.0:5067
@@ -205,16 +239,16 @@ MSG        : Hello
 RETRY_COUNT: 5
 -----
 TX[Subscriber-B]  : 10.1.0.3:5068 -> Hello
-+RX[Subscriber-B] : 10.1.0.3:59976 -> "UDP for subscriber B"
-docker exec -ti subscriber_b ash -c 'TCP_SEND_IP=10.1.0.4 python ./send-tcp.py'
++RX[Subscriber-B] : 10.1.0.3:50878 -> "UDP for subscriber B"
+docker exec -ti subscriber_b ash -c 'TCP_SEND_IP=10.1.0.7 python ./send-tcp.py'
 WHO_AM_I   : Subscriber-B
-TX         : 10.1.0.4:5080
+TX         : 10.1.0.7:5080
 MSG        : Hello
 -----
-CX[Subscriber-B]  : 10.1.0.4:5080
-+TX[Subscriber-B] : 10.1.0.4:5080 -> Hello
-+RX[Subscriber-B] : 10.1.0.4:5080 -> Good morning
-+DX[Subscriber-B] : 10.1.0.4:5080
+CX[Subscriber-B]  : 10.1.0.7:5080
++TX[Subscriber-B] : 10.1.0.7:5080 -> Hello
++RX[Subscriber-B] : 10.1.0.7:5080 -> "TCP Service Instance 1"
++DX[Subscriber-B] : 10.1.0.7:5080
 ```
 
 #### Clean Up
