@@ -28,6 +28,9 @@ destroy-vnfs:
 logs:
 	docker-compose logs -f --tail=10
 
+ps:
+	docker-compose ps
+
 connect:
 	./create_chain_interfaces.sh
 	./connect-chain.sh flows.input | bash
@@ -42,11 +45,14 @@ destroy: disconnect stop-vnfs destroy-vnfs
 subscriber_a:
 	docker exec -ti subscriber_a ash
 
+subscriber_b:
+	docker exec -ti subscriber_b ash
+
 test-udp-a:
 	docker exec -ti subscriber_a ash -c 'UDP_SEND_IP=10.1.0.3 python ./send-udp.py'
 
 test-tcp-a:
-	docker exec -ti subscriber_a ash -c 'TCP_SEND_IP=10.1.0.4 python ./send-tcp.py'
+	docker exec -ti subscriber_a ash -c 'TCP_SEND_IP=10.1.0.7 python ./send-tcp.py'
 
 test-a: test-udp-a test-tcp-a
 
@@ -54,7 +60,7 @@ test-udp-b:
 	docker exec -ti subscriber_b ash -c 'UDP_SEND_IP=10.1.0.3 python ./send-udp.py'
 
 test-tcp-b:
-	docker exec -ti subscriber_b ash -c 'TCP_SEND_IP=10.1.0.4 python ./send-tcp.py'
+	docker exec -ti subscriber_b ash -c 'TCP_SEND_IP=10.1.0.7 python ./send-tcp.py'
 
 test-b: test-udp-b test-tcp-b
 

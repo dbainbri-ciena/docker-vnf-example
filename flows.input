@@ -1,15 +1,25 @@
+sudo ovs-ofctl del-flows -OOpenFlow13 chain
+sudo ovs-ofctl del-groups -OOpenFlow13 chain
+
 # For now, just kill IPv6
 sudo ovs-ofctl add-flow -OOpenFlow13 chain table=0,ipv6,actions=drop
 
+# Generate ARP replies for the various components
+sudo ovs-ofctl add-flow chain "table=0,dl_type=0x0806,nw_dst=10.1.0.2,actions=load:0x2->NXM_OF_ARP_OP[],move:NXM_OF_ETH_SRC[]->NXM_OF_ETH_DST[],mod_dl_src:ca:fe:00:00:00:01,move:NXM_NX_ARP_SHA[]->NXM_NX_ARP_THA[],move:NXM_OF_ARP_SPA[]->NXM_OF_ARP_TPA[],load:0xcafe00000001->NXM_NX_ARP_SHA[],load:0x0a010002->NXM_OF_ARP_SPA[],in_port"
+sudo ovs-ofctl add-flow chain "table=0,dl_type=0x0806,nw_dst=10.1.0.3,actions=load:0x2->NXM_OF_ARP_OP[],move:NXM_OF_ETH_SRC[]->NXM_OF_ETH_DST[],mod_dl_src:ca:fe:00:00:00:04,move:NXM_NX_ARP_SHA[]->NXM_NX_ARP_THA[],move:NXM_OF_ARP_SPA[]->NXM_OF_ARP_TPA[],load:0xcafe00000004->NXM_NX_ARP_SHA[],load:0x0a010003->NXM_OF_ARP_SPA[],in_port"
+sudo ovs-ofctl add-flow chain "table=0,dl_type=0x0806,nw_dst=10.1.0.5,actions=load:0x2->NXM_OF_ARP_OP[],move:NXM_OF_ETH_SRC[]->NXM_OF_ETH_DST[],mod_dl_src:ca:fe:00:00:00:02,move:NXM_NX_ARP_SHA[]->NXM_NX_ARP_THA[],move:NXM_OF_ARP_SPA[]->NXM_OF_ARP_TPA[],load:0xcafe00000002->NXM_NX_ARP_SHA[],load:0x0a010005->NXM_OF_ARP_SPA[],in_port"
+sudo ovs-ofctl add-flow chain "table=0,dl_type=0x0806,nw_dst=10.1.0.7,actions=load:0x2->NXM_OF_ARP_OP[],move:NXM_OF_ETH_SRC[]->NXM_OF_ETH_DST[],mod_dl_src:ca:fe:00:00:00:03,move:NXM_NX_ARP_SHA[]->NXM_NX_ARP_THA[],move:NXM_OF_ARP_SPA[]->NXM_OF_ARP_TPA[],load:0xcafe00000003->NXM_NX_ARP_SHA[],load:0x0a010007->NXM_OF_ARP_SPA[],in_port"
+
 # Prevent subscriber b's stuff from talking to subscriber A
 sudo ovs-ofctl add-flow -OOpenFlow13 chain table=0,in_port=(egress_vnf_b_subscriber_b,in0),dl_dst={subscriber_a,eth0},actions=drop
-sudo ovs-ofctl add-flow -OOpenFlow13 chain table=0,in_port=(egress_vnf_b_subscriber_b,out0),dl_dst={subscriber_a,eth0},actions=drop
-sudo ovs-ofctl add-flow -OOpenFlow13 chain table=0,in_port=(udp_service_subscriber_b,eth0),dl_dst={subscriber_a,eth0},actions=drop
+sudo ovs-ofctl add-flow -OOpenFlow13 chain table=0,in_port=(egress_vnf_b_subscriber_b,in0),dl_src={subscriber_a,eth0},actions=drop
+sudo ovs-ofctl add-flow -OOpenFlow13 chain table=0,in_port=(egress_vnf_b_subscriber_b,in0),ip,nw_dst=[subscriber_a,eth0],actions=drop
+sudo ovs-ofctl add-flow -OOpenFlow13 chain table=0,in_port=(egress_vnf_b_subscriber_b,in0),ip,nw_src=[subscriber_a,eth0],actions=drop
 
-# Prevent subscriber a's stuff from talking to subscriber B
 sudo ovs-ofctl add-flow -OOpenFlow13 chain table=0,in_port=(egress_vnf_b_subscriber_a,in0),dl_dst={subscriber_b,eth0},actions=drop
-sudo ovs-ofctl add-flow -OOpenFlow13 chain table=0,in_port=(egress_vnf_b_subscriber_a,out0),dl_dst={subscriber_b,eth0},actions=drop
-sudo ovs-ofctl add-flow -OOpenFlow13 chain table=0,in_port=(udp_service_subscriber_a,eth0),dl_dst={subscriber_b,eth0},actions=drop
+sudo ovs-ofctl add-flow -OOpenFlow13 chain table=0,in_port=(egress_vnf_b_subscriber_a,in0),dl_src={subscriber_b,eth0},actions=drop
+sudo ovs-ofctl add-flow -OOpenFlow13 chain table=0,in_port=(egress_vnf_b_subscriber_a,in0),ip,nw_dst=[subscriber_b,eth0],actions=drop
+sudo ovs-ofctl add-flow -OOpenFlow13 chain table=0,in_port=(egress_vnf_b_subscriber_a,in0),ip,nw_src=[subscriber_b,eth0],actions=drop
 
 # subscriber -> egress vNF A, subscriber specific
 sudo ovs-ofctl add-flow -OOpenFlow13 chain table=0,in_port=(subscriber_a,eth0),actions=output:(egress_vnf_a,in0)
@@ -31,7 +41,11 @@ sudo ovs-ofctl add-flow -OOpenFlow13 chain table=0,in_port=(udp_service_subscrib
 sudo ovs-ofctl add-flow -OOpenFlow13 chain table=0,in_port=(udp_service_subscriber_b,eth0),actions=output:(ingress_vnf_a,in0)
 
 # Sample TCP service to ingress vNF A
-sudo ovs-ofctl add-flow -OOpenFlow13 chain table=0,in_port=(tcp_service,eth0),actions=output:(ingress_vnf_a,in0)
+sudo ovs-ofctl add-flow -OOpenFlow13 chain table=0,in_port=(tcp_service_instance_1,eth0),ip,nw_src=[tcp_service_instance_1,eth0],actions=mod_nw_src:10.1.0.7,mod_dl_src:{tcp_service_instance_1,eth0},output:(ingress_vnf_a,in0)
+sudo ovs-ofctl add-flow -OOpenFlow13 chain table=0,in_port=(tcp_service_instance_1,eth0),actions=mod_dl_src:ca:fe:00:00:00:3,output:(ingress_vnf_a,in0)
+
+sudo ovs-ofctl add-flow -OOpenFlow13 chain table=0,in_port=(tcp_service_instance_2,eth0),ip,nw_src=[tcp_service_instance_2,eth0],actions=mod_nw_src:10.1.0.7,mod_dl_src:{tcp_service_instance_2,eth0},output:(ingress_vnf_a,in0)
+sudo ovs-ofctl add-flow -OOpenFlow13 chain table=0,in_port=(tcp_service_instance_2,eth0),actions=mod_dl_src:ca:fe:00:00:00:3,output:(ingress_vnf_a,in0)
 
 # Internet to ingress vNF A
 sudo ovs-ofctl add-flow -OOpenFlow13 chain table=0,in_port=(uplink,up0),actions=output:(ingress_vnf_a,in0)
@@ -48,12 +62,16 @@ sudo ovs-ofctl add-flow -OOpenFlow13 chain table=0,in_port=(ingress_vnf_b_instan
 sudo ovs-ofctl add-flow -OOpenFlow13 chain table=0,in_port=(ingress_vnf_b_instance_2,out0),dl_dst={subscriber_b,eth0},actions=output:(subscriber_b,eth0)
 sudo ovs-ofctl add-flow -OOpenFlow13 chain table=0,in_port=(ingress_vnf_b_instance_3,out0),dl_dst={subscriber_b,eth0},actions=output:(subscriber_b,eth0)
 
+# Group to load balance to TCP service instances
+sudo ovs-ofctl add-group -OOpenFlow13 chain group_id:2,type=select,bucket=mod_dl_dst:{tcp_service_instance_1,eth0},mod_nw_dst:[tcp_service_instance_1,eth0],output=(tcp_service_instance_1,eth0),bucket=mod_dl_dst:{tcp_service_instance_2,eth0},mod_nw_dst:[tcp_service_instance_2,eth0],output:(tcp_service_instance_2,eth0)
+
 # On egress of vNF C, match on DST IP to service vNF or distribute everywhere
-sudo ovs-ofctl add-flow -OOpenFlow13 chain table=10,dl_src={subscriber_a,eth0},ip,nw_dst=10.1.0.3,actions=output:(udp_service_subscriber_a,eth0)
-sudo ovs-ofctl add-flow -OOpenFlow13 chain table=10,dl_src={subscriber_b,eth0},ip,nw_dst=10.1.0.3,actions=output:(udp_service_subscriber_b,eth0)
-sudo ovs-ofctl add-flow -OOpenFlow13 chain table=10,ip,nw_dst=10.1.0.4,actions=output:(tcp_service,eth0)
+sudo ovs-ofctl add-flow -OOpenFlow13 chain table=10,dl_src={subscriber_a,eth0},ip,nw_dst=10.1.0.3,actions=mod_dl_dst:{udp_service_subscriber_a,eth0},output:(udp_service_subscriber_a,eth0)
+sudo ovs-ofctl add-flow -OOpenFlow13 chain table=10,dl_src={subscriber_b,eth0},ip,nw_dst=10.1.0.3,actions=mod_dl_dst:{udp_service_subscriber_b,eth0},output:(udp_service_subscriber_b,eth0)
+sudo ovs-ofctl add-flow -OOpenFlow13 chain table=10,ip,nw_dst=10.1.0.7,actions=group:2
 
 # Subscriber isolation coming out of vNF-C
-sudo ovs-ofctl add-flow -OOpenFlow13 chain table=10,dl_src={subscriber_a,eth0},actions=output:(udp_service_subscriber_a,eth0),output:(tcp_service,eth0),output:(uplink,up0)
-sudo ovs-ofctl add-flow -OOpenFlow13 chain table=10,dl_src={subscriber_b,eth0},actions=output:(udp_service_subscriber_b,eth0),output:(tcp_service,eth0),output:(uplink,up0)
-sudo ovs-ofctl add-flow -OOpenFlow13 chain table=10,priority=0,actions=drop
+sudo ovs-ofctl add-flow -OOpenFlow13 chain table=10,dl_src={subscriber_a,eth0},actions=output:(udp_service_subscriber_a,eth0),output:(tcp_service_instance_1,eth0),output:(tcp_service_instance_2,eth0),output:(uplink,up0)
+sudo ovs-ofctl add-flow -OOpenFlow13 chain table=10,dl_src={subscriber_b,eth0},actions=output:(udp_service_subscriber_b,eth0),output:(tcp_service_instance_1,eth0),output:(tcp_service_instance_2,eth0),output:(uplink,up0)
+#sudo ovs-ofctl add-flow -OOpenFlow13 chain table=10,priority=0,actions=drop
+

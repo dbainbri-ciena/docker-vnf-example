@@ -14,6 +14,15 @@ for i in $LIST; do
     cp $TMPB $TMPA
 done
 
+# Substribute IP addresses
+for i in $LIST; do
+    CONTAINER="$(echo $i | cut -d, -f1)"
+    INTERFACE=$(echo $i | cut -d, -f2)
+    IP=$(docker exec -ti $CONTAINER ifconfig $INTERFACE | grep 'inet addr' | cut -d: -f2 | awk '{print $1}')
+    cat $TMPA | sed -e "s/\[$i\]/$IP/g" > $TMPB
+    cp $TMPB $TMPA
+done
+
 # Substitue MAC addresses
 for i in $LIST; do
     CONTAINER="$(echo $i | cut -d, -f1)"

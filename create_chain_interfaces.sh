@@ -24,7 +24,8 @@ sudo ovs-docker add-port chain out0 egress_vnf_c
 sudo ovs-docker add-port chain up0 uplink --ipaddress=10.1.0.1/24
 sudo ovs-docker add-port chain eth0 udp_service_subscriber_a --ipaddress=10.1.0.3/24
 sudo ovs-docker add-port chain eth0 udp_service_subscriber_b --ipaddress=10.1.0.3/24
-sudo ovs-docker add-port chain eth0 tcp_service --ipaddress=10.1.0.4/24
+sudo ovs-docker add-port chain eth0 tcp_service_instance_1 --ipaddress=10.1.0.4/24
+sudo ovs-docker add-port chain eth0 tcp_service_instance_2 --ipaddress=10.1.0.6/24
 sudo ovs-docker add-port chain in0 ingress_vnf_a
 sudo ovs-docker add-port chain out0 ingress_vnf_a
 sudo ovs-docker add-port chain in0 ingress_vnf_b_instance_1

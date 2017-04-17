@@ -87,9 +87,20 @@ services:
         environment:
         - MESSAGE="UDP for subscriber B"
 
-    tcp_service:
-        container_name: tcp_service
+    tcp_service_instance_1:
+        container_name: tcp_service_instance_1
         image: ciena/tcp-svc
         network_mode: none
         cap_add:
         - ALL
+        environment:
+        - MESSAGE="TCP Service Instance 1"
+
+    tcp_service_instance_2:
+        container_name: tcp_service_instance_2
+        image: ciena/tcp-svc
+        network_mode: none
+        cap_add:
+        - ALL
+        environment:
+        - MESSAGE="TCP Service Instance 2"

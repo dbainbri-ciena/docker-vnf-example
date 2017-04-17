@@ -10,7 +10,8 @@ by the `SVC` entries.
 
 The example demonstrates the a user case with two distinct subscribers as well
 as some vNFs that are shared and some vNFs that are unique per subscriber. Also
-demonstrated is a shared vNF that is load balanced between 3 instances.
+demonstrated is a shared L2 vNF that is load balanced between 3 instances and a
+L3 vNF service (TCP) that is load balanced between two instances.
 
 ![](./logical.png)
 
@@ -19,8 +20,8 @@ below:
 
 ![](./physical.png)
 
-_**TODO:** While the user case depicts a connection to the Internet this aspect of
-the use case is not yet supported._
+_**TODO:** While the user case depicts a connection to the Internet this aspect
+of the use case is not yet supported._
 
 The formula used for this demonstration is that each VNF is assigned two (2)
 data plane interfaces, `in0` and `out0`. It is the requirement of the the VNF
